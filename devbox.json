@@ -24,7 +24,8 @@
     "hadolint@latest",
     "actionlint@latest",
     "golines@latest",
-    "gotestsum@latest"
+    "gotestsum@latest",
+    "shfmt@latest"
   ],
   "shell": {
     "init_hook": [
