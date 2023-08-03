@@ -1,0 +1,208 @@
+# Copyright 2023 Jimmi Dyson.
+# SPDX-License-Identifier: Apache-2.0
+
+name: checks
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    types:
+      - opened
+      - synchronize
+      - reopened
+  merge_group:
+    types:
+      - checks_requested
+
+permissions:
+  contents: read
+
+jobs:
+  unit-test:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v3
+
+      - name: Install devbox
+        uses: jetpack-io/devbox-install-action@v0.5.0
+        with:
+          enable-cache: true
+
+      - name: Run unit tests
+        run: devbox run -- make test
+
+      - name: Annotate tests
+        if: always()
+        uses: guyarb/golang-test-annotations@v0.7.0
+        with:
+          test-results: test.json
+
+  e2e-test:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v3
+
+      - name: "Check e2e tests exist"
+        id: check_e2e_tests_exist
+        uses: andstor/file-existence-action@v2
+        with:
+          files: "test/e2e/**"
+
+      - if: steps.check_e2e_tests_exist.outputs.files_exists == 'true'
+        name: Install devbox
+        uses: jetpack-io/devbox-install-action@v0.5.0
+        with:
+          enable-cache: true
+
+      - if: steps.check_e2e_tests_exist.outputs.files_exists == 'true'
+        name: Build and install on KinD
+        run: devbox run -- make dev.run-on-kind
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - if: steps.check_e2e_tests_exist.outputs.files_exists == 'true'
+        name: Run e2e tests
+        run: devbox run -- make e2e-test
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - if: steps.check_e2e_tests_exist.outputs.files_exists == 'true' && always()
+        name: Cleanup KinD cluster
+        run: devbox run -- make kind.delete
+
+  lint-go:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v3
+
+      - name: Install devbox
+        uses: jetpack-io/devbox-install-action@v0.5.0
+        with:
+          enable-cache: true
+
+      - name: Export golang and golangci-lint versions
+        id: versions
+        run: |
+          echo "golangci-lint=$(devbox run -- golangci-lint version --format short)" >>"${GITHUB_OUTPUT}"
+          echo "golang=$(devbox run -- go version | grep -o "[[:digit:]]\+.[[:digit:]]\+\(.[[:digit:]]\+\)\?")" >>"${GITHUB_OUTPUT}"
+
+      - name: golangci-lint
+        uses: reviewdog/action-golangci-lint@v2
+        with:
+          fail_on_error: true
+          reporter: github-pr-review
+          golangci_lint_version: v${{ steps.versions.outputs.golangci-lint }}
+          go_version: v${{ steps.versions.outputs.golang }}
+
+  lint-gha:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v3
+
+      - name: actionlint
+        uses: reviewdog/action-actionlint@v1
+        with:
+          fail_on_error: true
+          reporter: github-pr-review
+
+  lint-dockerfile:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v3
+
+      - name: actionlint
+        uses: reviewdog/action-hadolint@v1
+        with:
+          fail_on_error: true
+          reporter: github-pr-review
+
+  pre-commit:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v3
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+
+      - name: Install devbox
+        uses: jetpack-io/devbox-install-action@v0.5.0
+        with:
+          enable-cache: true
+
+      - name: Set up pre-commit cache
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/pre-commit
+          key: pre-commit-3|${{ env.pythonLocation }}|${{ hashFiles('.pre-commit-config.yaml') }}
+
+      - name: Run pre-commit
+        run: devbox run -- make pre-commit
+        env:
+          SKIP: no-commit-to-branch,golangci-lint,actionlint-system
+
+  lint-test-helm:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Install devbox
+        uses: jetpack-io/devbox-install-action@v0.5.0
+        with:
+          enable-cache: true
+
+      - if: github.ref != 'refs/heads/main'
+        name: Fetch main if necessary
+        run: git fetch origin main:main
+
+      - name: Run chart-testing (list-changed)
+        id: list-changed
+        run: |
+          changed=$(devbox run -- ct list-changed --target-branch ${{ github.event.repository.default_branch }})
+          if [[ -n "$changed" ]]; then
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - if: steps.list-changed.outputs.changed == 'true'
+        name: Run chart-testing (lint)
+        run: devbox run -- ct lint --config charts/ct-config.yaml
+
+      - if: steps.list-changed.outputs.changed == 'true'
+        name: Create kind cluster
+        run: |
+          devbox run -- kind create cluster \
+            --image=ghcr.io/mesosphere/kind-node:"$(kubectl version --output=json --client | gojq --raw-output .clientVersion.gitVersion)" \
+            --name=chart-testing
+        env:
+          KUBECONFIG: ct-kind-kubeconfig
+
+      - if: steps.list-changed.outputs.changed == 'true'
+        name: Build Docker images
+        run: devbox run -- make release-snapshot
+
+      - if: steps.list-changed.outputs.changed == 'true'
+        name: Sideload docker image
+        run: devbox run -- kind load docker-image --name chart-testing "$(jq -r '.[] | select(.type == "Docker Image" and .goos == "linux" and .goarch == "amd64").name' dist/artifacts.json)"
+
+      - if: steps.list-changed.outputs.changed == 'true'
+        name: Setup Cluster API and cert-manager
+        run: devbox run -- make clusterctl.init
+        env:
+          KIND_KUBECONFIG: ct-kind-kubeconfig
+
+      - if: steps.list-changed.outputs.changed == 'true'
+        name: Run chart-testing (install)
+        run: devbox run -- ct install --config charts/ct-config.yaml --helm-extra-set-args "--set=image.tag=$(jq -r .version dist/metadata.json)"
+        env:
+          KUBECONFIG: ct-kind-kubeconfig
+
+      - if: steps.list-changed.outputs.changed == 'true' && always()
+        name:
+        run: devbox run -- kind delete cluster --name chart-testing || true

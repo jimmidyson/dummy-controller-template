@@ -1,0 +1,19 @@
+# Copyright 2023 Jimmi Dyson.
+# SPDX-License-Identifier: Apache-2.0
+
+apiVersion: v2
+
+name: dummy-controller
+type: application
+description: A Helm chart for dummy-controller
+
+home: https://github.com/jimmidyson/dummy-controller
+maintainers:
+- name: jimmidyson
+  email: jimmidyson@gmail.com
+  url: https://eng.d2iq.com
+sources:
+- https://github.com/jimmidyson/dummy-controller
+
+appVersion: v0.0.0-dev
+version: v0.0.0-dev

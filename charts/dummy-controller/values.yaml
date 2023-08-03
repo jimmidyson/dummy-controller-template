@@ -1,0 +1,52 @@
+# Copyright 2023 Jimmi Dyson.
+# SPDX-License-Identifier: Apache-2.0
+
+deployment:
+  replicas: 1
+
+controllers:
+  enableLeaderElection: false
+
+image:
+  repository: ghcr.io/jimmidyson/dummy-controller
+  tag: ""
+  pullPolicy: IfNotPresent
+
+# -- Optional secrets used for pulling the container image
+imagePullSecrets: []
+# - name: Secret with Registry credentials
+
+certificates:
+  issuer:
+    selfSigned: true
+    name: ""
+    kind: Issuer
+
+env: {}
+
+resources:
+  limits:
+    cpu: 100m
+    memory: 256Mi
+  requests:
+    cpu: 100m
+    memory: 128Mi
+securityContext:
+  runAsUser: 65532
+service:
+  annotations: {}
+  type: ClusterIP
+  port: 443
+
+nodeSelector: {}
+  # -- Kubernetes node selector: node labels for pod assignment
+  # Allow scheduling of Deployment on linux nodes only
+  # kubernetes.io/os: linux
+
+tolerations: []
+  # -- Kubernetes pod tolerations
+  # Allow scheduling of Deployment on all nodes
+  # - operator: "Exists"
+
+# -- Optional priority class to be used for the pod.
+priorityClassName: ""
