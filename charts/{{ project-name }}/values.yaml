@@ -8,7 +8,7 @@ controllers:
   enableLeaderElection: false
 
 image:
-  repository: ghcr.io/jimmidyson/dummy-controller
+  repository: ghcr.io/jimmidyson/{{project-name}}
   tag: ""
   pullPolicy: IfNotPresent
 

@@ -1,7 +1,7 @@
 // Copyright 2023 Jimmi Dyson.
 // SPDX-License-Identifier: Apache-2.0
 
-module github.com/jimmidyson/dummy-controller
+module {{ gomodule }}
 
 go 1.20
 

@@ -11,8 +11,8 @@ FROM --platform=linux/arm64 gcr.io/distroless/static@sha256:05810557ec4b4bf01f4d
 # hadolint ignore=DL3006,DL3029
 FROM --platform=linux/${TARGETARCH} linux-${TARGETARCH}
 
-COPY dummy-controller /usr/local/bin/dummy-controller
+COPY {{project-name}} /usr/local/bin/{{project-name}}
 
 # Use uid of nonroot user (65532) because kubernetes expects numeric user when applying pod security policies
 USER 65532
-ENTRYPOINT ["/usr/local/bin/dummy-controller"]
+ENTRYPOINT ["/usr/local/bin/{{project-name}}"]

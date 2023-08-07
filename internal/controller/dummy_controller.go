@@ -11,7 +11,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 
-	dummyv1alpha1 "github.com/jimmidyson/dummy-controller/api/v1alpha1"
+	dummyv1alpha1 "{{ gomodule }}/api/v1alpha1"
 )
 
 // DummyReconciler reconciles a Dummy object.

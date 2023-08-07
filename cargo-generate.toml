@@ -1,0 +1,6 @@
+[placeholders.gomodule]
+type = "string"
+prompt = "What is the fully-qualified go module path?"
+
+[template]
+ignore = []

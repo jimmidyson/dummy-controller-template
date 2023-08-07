@@ -164,19 +164,19 @@ go-clean.%: ; $(info $(M) running go clean for $* module)
 go-generate: ## Runs go generate
 go-generate: ; $(info $(M) running go generate)
 	go generate -x ./...
-	rm -f charts/dummy-controller/crds/* charts/dummy-controller/templates/role.yaml
+	rm -f charts/{{ project-name }}/crds/* charts/{{ project-name }}/templates/role.yaml
 	controller-gen \
-		rbac:headerFile="hack/boilerplate.yaml.txt",roleName="dummy-controller-manager-role" \
+		rbac:headerFile="hack/boilerplate.yaml.txt",roleName="{{ project-name }}-manager-role" \
 		crd:headerFile="hack/boilerplate.yaml.txt" \
 		webhook:headerFile="hack/boilerplate.yaml.txt" \
 		object:headerFile="hack/boilerplate.go.txt" \
 		paths="./..." \
-		output:crd:artifacts:config=charts/dummy-controller/crds \
-		output:rbac:artifacts:config=charts/dummy-controller/templates \
-		output:webhook:artifacts:config=charts/dummy-controller/templates
-	mv charts/dummy-controller/templates/{manifests,webhooks}.yaml
-	sed -i 's/name: webhook-service/name: {{ template "chart.name" . }}-webhook/g' charts/dummy-controller/templates/webhooks.yaml
-	sed -i 's/dummy-controller-manager-role/{{ template "chart.name" . }}-manager-role/g' charts/dummy-controller/templates/role.yaml
+		output:crd:artifacts:config=charts/{{ project-name }}/crds \
+		output:rbac:artifacts:config=charts/{{ project-name }}/templates \
+		output:webhook:artifacts:config=charts/{{ project-name }}/templates
+	mv charts/{{ project-name }}/templates/{manifests,webhooks}.yaml
+	sed -i 's/name: webhook-service/name: {{ "{{" }} template "chart.name" . {{ "}}" }}-webhook/g' charts/{{ project-name }}/templates/webhooks.yaml
+	sed -i 's/{{ project-name }}-manager-role/{{ "{{" }} template "chart.name" . {{ "}}" }}-manager-role/g' charts/{{ project-name }}/templates/role.yaml
 
 .PHONY: go-mod-upgrade
 go-mod-upgrade: ## Interactive check for direct module dependency upgrades

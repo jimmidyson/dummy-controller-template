@@ -21,7 +21,7 @@ jobs:
         id: release-please
         with:
           release-type: go
-          package-name: dummy-controller
+          package-name: {{project-name}}
           pull-request-title-pattern: "build${scope}: release${component} ${version}"
           changelog-notes-type: github
 

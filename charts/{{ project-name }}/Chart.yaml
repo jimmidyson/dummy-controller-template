@@ -3,17 +3,17 @@
 
 apiVersion: v2
 
-name: dummy-controller
+name: {{project-name}}
 type: application
-description: A Helm chart for dummy-controller
+description: A Helm chart for {{project-name}}
 
-home: https://github.com/jimmidyson/dummy-controller
+home: https://{{ gomodule }}
 maintainers:
 - name: jimmidyson
   email: jimmidyson@gmail.com
   url: https://eng.d2iq.com
 sources:
-- https://github.com/jimmidyson/dummy-controller
+- https://{{ gomodule }}
 
 appVersion: v0.0.0-dev
 version: v0.0.0-dev

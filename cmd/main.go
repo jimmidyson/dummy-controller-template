@@ -20,8 +20,8 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 	"sigs.k8s.io/controller-runtime/pkg/webhook"
 
-	dummyv1alpha1 "github.com/jimmidyson/dummy-controller/api/v1alpha1"
-	"github.com/jimmidyson/dummy-controller/internal/controller"
+	dummyv1alpha1 "{{ gomodule }}/api/v1alpha1"
+	"{{ gomodule }}/internal/controller"
 )
 
 var (

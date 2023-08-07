@@ -5,8 +5,8 @@
 domain: example.com
 layout:
 - go.kubebuilder.io/v4
-projectName: dummy-controller
-repo: github.com/jimmidyson/dummy-controller
+projectName: {{project-name}}
+repo: {{ gomodule }}
 resources:
 - api:
     crdVersion: v1
@@ -15,7 +15,7 @@ resources:
   domain: example.com
   group: dummy
   kind: Dummy
-  path: github.com/jimmidyson/dummy-controller/api/v1alpha1
+  path: {{ gomodule }}/api/v1alpha1
   version: v1alpha1
   webhooks:
     defaulting: true

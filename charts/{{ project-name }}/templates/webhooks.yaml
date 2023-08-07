@@ -10,7 +10,7 @@ webhooks:
   - v1
   clientConfig:
     service:
-      name: {{ template "chart.name" . }}-webhook
+      name: {{ "{{" }} template "chart.name" . {{ "}}" }}-webhook
       namespace: system
       path: /mutate-dummy-example-com-v1alpha1-dummy
   failurePolicy: Fail
@@ -36,7 +36,7 @@ webhooks:
   - v1
   clientConfig:
     service:
-      name: {{ template "chart.name" . }}-webhook
+      name: {{ "{{" }} template "chart.name" . {{ "}}" }}-webhook
       namespace: system
       path: /validate-dummy-example-com-v1alpha1-dummy
   failurePolicy: Fail

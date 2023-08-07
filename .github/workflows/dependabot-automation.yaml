@@ -15,7 +15,7 @@ permissions:
 jobs:
   auto-approve:
     runs-on: ubuntu-22.04
-    if: ${{ github.event.pull_request.user.login == 'dependabot[bot]' }}
+    if: ${{ "{{" }} github.event.pull_request.user.login == 'dependabot[bot]' {{ "}}" }}
     steps:
       - name: Dependabot metadata
         id: dependabot-metadata
@@ -30,12 +30,12 @@ jobs:
             echo "PR already approved, skipping additional approvals to minimize emails/notification noise."
           fi
         env:
-          PR_URL: ${{github.event.pull_request.html_url}}
-          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
+          PR_URL: ${{ "{{" }} github.event.pull_request.html_url}}
+          GITHUB_TOKEN: ${{ "{{" }} secrets.GITHUB_TOKEN}}
 
   enable-automerge:
     runs-on: ubuntu-22.04
-    if: ${{ github.event.pull_request.user.login == 'dependabot[bot]'}}
+    if: ${{ "{{" }} github.event.pull_request.user.login == 'dependabot[bot]' {{ "}}" }}
     steps:
       - name: Dependabot metadata
         id: dependabot-metadata
@@ -43,5 +43,5 @@ jobs:
       - name: Enable auto-merge for Dependabot PRs
         run: gh pr merge --auto --squash "$PR_URL"
         env:
-          PR_URL: ${{github.event.pull_request.html_url}}
-          GH_TOKEN: ${{secrets.GITHUB_TOKEN}}
+          PR_URL: ${{ "{{" }} github.event.pull_request.html_url {{ "}}" }}
+          GH_TOKEN: ${{ "{{" }} secrets.GITHUB_TOKEN {{ "}}" }}

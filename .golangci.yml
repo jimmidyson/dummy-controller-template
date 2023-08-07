@@ -53,7 +53,7 @@ linters-settings:
     sections:
       - Standard
       - Default
-      - Prefix(github.com/jimmidyson/dummy-controller)
+      - Prefix({{ gomodule }})
   gocritic:
     enabled-tags:
       - diagnostic

@@ -1,0 +1,79 @@
+# Copyright 2023 Jimmi Dyson.
+# SPDX-License-Identifier: Apache-2.0
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    {{ "{{" }}- include "chart.labels" . | nindent 4 {{ "}}" }}
+  name: {{ "{{" }} template "chart.name" . {{ "}}" }}
+  namespace: {{ "{{" }} .Release.Namespace {{ "}}" }}
+spec:
+  replicas: {{ "{{" }} .Values.deployment.replicas{{ "}}" }}
+  selector:
+    matchLabels:
+      {{ "{{" }}- include "chart.selectorLabels" . | nindent 6 {{ "}}" }}
+  template:
+    metadata:
+      labels:
+        {{ "{{" }}- include "chart.selectorLabels" . | nindent 8 {{ "}}" }}
+    spec:
+      nodeSelector:
+        {{ "{{" }}- toYaml .Values.nodeSelector | nindent 8 {{ "}}" }}
+      tolerations:
+        {{ "{{" }}- toYaml .Values.tolerations | nindent 8 {{ "}}" }}
+      serviceAccountName: {{ "{{" }} template "chart.name" . {{ "}}" }}
+      terminationGracePeriodSeconds: 10
+      containers:
+      - name: webhook
+        image: "{{ "{{" }} .Values.image.repository {{ "}}" }}:{{ "{{" }} .Values.image.tag | default $.Chart.AppVersion {{ "}}" }}"
+        imagePullPolicy: "{{ "{{" }} .Values.image.pullPolicy {{ "}}" }}"
+{{ "{{" }}- if .Values.env {{ "}}" }}
+        env:
+{{ "{{" }}- range $key, $value := .Values.env {{ "}}" }}
+        - name: "{{ "{{" }} $key {{ "}}" }}"
+          value: "{{ "{{" }} $value {{ "}}" }}"
+{{ "{{" }}- end {{ "}}" }}
+{{ "{{" }}- end {{ "}}" }}
+        args:
+        - --webhook-tls-cert-dir=/webhook-certs/
+        - --leader-elect={{ "{{" }} if gt (.Values.deployment.replicas | int) 1 {{ "}}" }}true{{ "{{" }} else {{ "}}" }}{{ "{{" }} .Values.controllers.enableLeaderElection {{ "}}" }}{{ "{{" }} end {{ "}}" }}
+        {{ "{{" }}- range $key, $value := .Values.extraArgs {{ "}}" }}
+        - --{{ "{{" }} $key {{ "}}" }}={{ "{{" }} $value {{ "}}" }}
+        {{ "{{" }}- end {{ "}}" }}
+        ports:
+        - containerPort: 8443
+          name: webhook
+          protocol: TCP
+        - containerPort: 8080
+          name: metrics
+          protocol: TCP
+        - containerPort: 8081
+          name: probes
+          protocol: TCP
+        resources:
+          {{ "{{" }} with .Values.resources {{ "}}" }}
+          {{ "{{" }}- toYaml . | nindent 10 {{ "}}" }}
+          {{ "{{" }}- end {{ "}}" }}
+        volumeMounts:
+        - mountPath: /webhook-certs
+          name: webhook-cert
+          readOnly: true
+        livenessProbe:
+          httpGet:
+            port: probes
+            scheme: HTTP
+            path: /healthz
+        readinessProbe:
+          httpGet:
+            port: probes
+            scheme: HTTP
+            path: /readyz
+      securityContext:
+        {{ "{{" }} with .Values.securityContext {{ "}}" }}
+        {{ "{{" }}- toYaml . | nindent 8{{ "}}" }}
+        {{ "{{" }}- end {{ "}}" }}
+      volumes:
+      - name: webhook-cert
+        secret:
+          defaultMode: 420
+          secretName: {{ "{{" }} template "chart.name" . {{ "}}" }}-webhook-tls

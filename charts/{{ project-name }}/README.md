@@ -3,13 +3,13 @@
  SPDX-License-Identifier: Apache-2.0
  -->
 
-# dummy-controller
+# {{project-name}}
 
 ![Version: v0.0.0-dev](https://img.shields.io/badge/Version-v0.0.0--dev-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: v0.0.0-dev](https://img.shields.io/badge/AppVersion-v0.0.0--dev-informational?style=flat-square)
 
-A Helm chart for dummy-controller
+A Helm chart for {{project-name}}
 
-**Homepage:** <https://github.com/jimmidyson/dummy-controller>
+**Homepage:** <https://{{ gomodule }}>
 
 ## Maintainers
 
@@ -19,7 +19,7 @@ A Helm chart for dummy-controller
 
 ## Source Code
 
-* <https://github.com/jimmidyson/dummy-controller>
+* <https://{{ gomodule }}>
 
 ## Values
 
@@ -32,7 +32,7 @@ A Helm chart for dummy-controller
 | deployment.replicas | int | `1` |  |
 | env | object | `{}` |  |
 | image.pullPolicy | string | `"IfNotPresent"` |  |
-| image.repository | string | `"ghcr.io/jimmidyson/dummy-controller"` |  |
+| image.repository | string | `"ghcr.io/jimmidyson/{{project-name}}"` |  |
 | image.tag | string | `""` |  |
 | imagePullSecrets | list | `[]` | Optional secrets used for pulling the container image |
 | nodeSelector | object | `{}` |  |

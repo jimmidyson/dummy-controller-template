@@ -10,8 +10,8 @@ ifndef SKIP_BUILD
 endif
 	kind load docker-image --name $(KIND_CLUSTER_NAME) \
 		$$(gojq -r '.[] | select(.type=="Docker Image") | select(.goarch=="$(GOARCH)") | .name' dist/artifacts.json)
-	helm upgrade --install dummy-controller ./charts/dummy-controller \
+	helm upgrade --install {{project-name}} ./charts/{{project-name}} \
 		--set-string image.tag=$$(gojq -r .version dist/metadata.json) \
 		--wait --wait-for-jobs
-	kubectl rollout restart deployment dummy-controller
-	kubectl rollout status deployment dummy-controller
+	kubectl rollout restart deployment {{project-name}}
+	kubectl rollout status deployment {{project-name}}

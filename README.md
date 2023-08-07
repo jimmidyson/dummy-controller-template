@@ -28,13 +28,13 @@ kubeconfig file (i.e. whatever cluster `kubectl cluster-info` shows).
 2.  Build and push your image to the location specified by `IMG`:
 
     ```sh
-    make docker-build docker-push IMG=<some-registry>/dummy-controller:tag
+    make docker-build docker-push IMG=<some-registry>/{{project-name}}:tag
     ```
 
 3.  Deploy the controller to the cluster with the image specified by `IMG`:
 
     ```sh
-    make deploy IMG=<some-registry>/dummy-controller:tag
+    make deploy IMG=<some-registry>/{{project-name}}:tag
     ```
 
 ### Uninstall CRDs
